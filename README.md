@@ -36,12 +36,18 @@
 
 ## Архітектура
 
-Датасет (Animals-10)
+Датасет (Animals-10) https://www.kaggle.com/datasets/alessiocorrado99/animals10/data
+
 ↓
+
 Fine-tuning EfficientNet (PyTorch)
+
 ↓
+
 ONNX Export
+
 ↓
+
 FastAPI Server + Web UI
 
 ## 🚀 Запуск локально
