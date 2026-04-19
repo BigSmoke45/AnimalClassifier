@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Classifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f0f1a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container { width: 100%; max-width: 580px; padding: 20px; }
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #7c6ff7, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { text-align: center; color: #888; font-size: 0.9rem; margin-bottom: 24px; }
+
+        /* Перемикач моделі */
+        .model-switch {
+            display: flex;
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+            gap: 4px;
+        }
+        .model-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #888;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .model-btn.active {
+            background: linear-gradient(90deg, #7c6ff7, #a78bfa);
+            color: white;
+            font-weight: 600;
+        }
+        .model-info {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 20px;
+            min-height: 18px;
+        }
+
+        .upload-area {
+            border: 2px dashed #7c6ff7;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #1a1a2e;
+            margin-bottom: 20px;
+        }
+        .upload-area:hover { background: #1f1f38; border-color: #a78bfa; }
+        .upload-area.dragover { background: #252545; border-color: #fff; }
+        .upload-icon { font-size: 3rem; margin-bottom: 12px; }
+        .upload-area p { color: #aaa; font-size: 0.95rem; }
+        .upload-area span { color: #a78bfa; font-weight: 600; }
+        #fileInput { display: none; }
+
+        #preview-section { display: none; margin-bottom: 20px; }
+        #preview {
+            width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #1a1a2e;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #7c6ff7, #a78bfa);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-bottom: 20px;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        #result-section { display: none; }
+        .result-top {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .result-model-tag {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .result-label {
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #a78bfa;
+        }
+        .result-conf { font-size: 1rem; color: #888; margin-top: 4px; }
+
+        .bars { background: #1a1a2e; border-radius: 16px; padding: 20px; }
+        .bar-item { margin-bottom: 14px; }
+        .bar-item:last-child { margin-bottom: 0; }
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        .bar-track { background: #2a2a3e; border-radius: 8px; height: 10px; overflow: hidden; }
+        .bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(90deg, #7c6ff7, #a78bfa);
+            transition: width 0.6s ease;
+        }
+        .spinner { text-align: center; padding: 20px; color: #888; display: none; }
+        .error {
+            background: #2a1a1a;
+            border: 1px solid #f87171;
+            border-radius: 12px;
+            padding: 16px;
+            color: #f87171;
+            text-align: center;
+            display: none;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🐾 Animal Classifier</h1>
+    <p class="subtitle">Завантаж фото — модель визначить тварину (доступно 4 класи. Кіт, собака, слон, кінь</p>
+
+    <div class="model-switch">
+        <button class="model-btn active" onclick="selectModel('b0')">
+            ⚡ EfficientNet-B0
+        </button>
+        <button class="model-btn" onclick="selectModel('b3')">
+            🎯 EfficientNet-B3
+        </button>
+    </div>
+    <div class="model-info" id="modelInfo">
+        EfficientNet-B0 · 4M параметрів · img 224px
+    </div>
+
+    <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📁</div>
+        <p>Перетягни фото сюди або <span>натисни щоб вибрати</span></p>
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div id="preview-section">
+        <img id="preview" alt="preview">
+    </div>
+
+    <button class="btn" id="predictBtn" disabled>Визначити</button>
+
+    <div class="error" id="error">Помилка! Спробуй інше фото.</div>
+    <div class="spinner" id="spinner">⏳ Аналізуємо...</div>
+
+    <div id="result-section">
+        <div class="result-top">
+            <div class="result-model-tag" id="resultModelTag"></div>
+            <div class="result-label" id="resultLabel">—</div>
+            <div class="result-conf" id="resultConf"></div>
+        </div>
+        <div class="bars" id="bars"></div>
+    </div>
+</div>
+
+<script>
+
+    const modelInfo = {
+        b0: "EfficientNet-B0 модель · 4M параметрів · img 224px",
+        b3: "EfficientNet-B3 модель · 12M параметрів · img 300px",
+    };
+    const modelNames = {
+        b0: "EfficientNet-B0",
+        b3: "EfficientNet-B3",
+    };
+
+    let selectedModel = "b0";
+    let selectedFile = null;
+
+    function selectModel(model) {
+        selectedModel = model;
+        document.querySelectorAll('.model-btn').forEach((btn, i) => {
+            btn.classList.toggle('active', (i === 0 && model === 'b0') || (i === 1 && model === 'b3'));
+        });
+        document.getElementById('modelInfo').textContent = modelInfo[model];
+        document.getElementById('result-section').style.display = 'none';
+    }
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const previewSection = document.getElementById('preview-section');
+    const predictBtn = document.getElementById('predictBtn');
+    const resultSection = document.getElementById('result-section');
+    const spinner = document.getElementById('spinner');
+    const error = document.getElementById('error');
+
+    uploadArea.addEventListener('click', () => fileInput.click());
+    uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+    uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+    uploadArea.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) setFile(file);
+    });
+    fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+    function setFile(file) {
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = e => {
+            preview.src = e.target.result;
+            previewSection.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+        predictBtn.disabled = false;
+        resultSection.style.display = 'none';
+        error.style.display = 'none';
+    }
+
+    predictBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+        predictBtn.disabled = true;
+        spinner.style.display = 'block';
+        resultSection.style.display = 'none';
+        error.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('model', selectedModel);
+
+        try {
+            const response = await fetch('/predict', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            document.getElementById('resultModelTag').textContent = modelNames[selectedModel];
+            const translateClass = {
+    'cane': 'Собака 🐕',
+    'cavallo': 'Кінь 🐴',
+    'elefante': 'Слон 🐘',
+    'gatto': 'Кіт 🐱',
+};
+document.getElementById('resultLabel').textContent =
+    translateClass[data.prediction] || data.prediction;
+            document.getElementById('resultConf').textContent = `Впевненість: ${data.confidence.toFixed(1)}%`;
+
+            const barsDiv = document.getElementById('bars');
+            barsDiv.innerHTML = '';
+            data.all.forEach(item => {
+                barsDiv.innerHTML += `
+                    <div class="bar-item">
+                        <div class="bar-label">
+                            <span>${translateClass[item.class] || item.class}</span>
+                            <span>${item.confidence.toFixed(1)}%</span>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${item.confidence}%"></div>
+                        </div>
+                    </div>`;
+            });
+            resultSection.style.display = 'block';
+        } catch(e) {
+            error.style.display = 'block';
+        } finally {
+            spinner.style.display = 'none';
+            predictBtn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>
