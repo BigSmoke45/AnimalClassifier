@@ -46,7 +46,7 @@ class RandomLowRes:
 
 # Головна функція
 def main():
-    DATA_DIR = Path("data/animals")
+    #шлях до датасету, наприклад DATA_DIR = Path("data/animals")
     BATCH_SIZE = 128
     EPOCHS = 15
     IMG_SIZE = 300
