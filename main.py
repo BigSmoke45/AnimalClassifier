@@ -46,7 +46,7 @@ class RandomLowRes:
 
 # Головна функція
 def main():
-    DATA_DIR = Path("data/animals")
+    DATA_DIR = #шлях до датасету, наприклад DATA_DIR = Path("data/animals")
     BATCH_SIZE = 128
     EPOCHS = 15
     IMG_SIZE = 224
@@ -61,12 +61,12 @@ def main():
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ColorJitter(brightness=0.3, contrast=0.3),
-        # ── Нові деградації ──
+        # Нові деградації
         AddBlur(max_radius=4),
         AddNoise(max_level=40),
         RandomDarkness(min_factor=0.3),
         RandomLowRes(min_size=32),
-        # ─────────────────────
+        #
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406],
                              [0.229, 0.224, 0.225]),
