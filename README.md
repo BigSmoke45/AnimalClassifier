@@ -50,7 +50,7 @@ ONNX Export
 
 FastAPI Server + Web UI
 
-## 🚀 Запуск локально
+## Запуск локально
 
 ```bash
 pip install fastapi uvicorn onnxruntime pillow numpy python-multipart
@@ -59,7 +59,7 @@ uvicorn server:app --reload
 
 Відкрити http://localhost:8000
 
-## 📁 Структура
+## Структура
 
 ├── server.py          # FastAPI backend
 
@@ -74,3 +74,5 @@ uvicorn server:app --reload
 ├── Dockerfile
 
 └── requirements.txt
+
+
